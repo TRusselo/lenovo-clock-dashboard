@@ -19,8 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-This licence covers this repository's own code and documentation only. The
-firmware, the AVB unlock tool and its credentials, edl (GPL-3.0) and Kiosk
-Satellite are not part of this repository: the tool downloads them from their
-original sources at run time, and they keep their own terms.
