@@ -1,7 +1,7 @@
 # Kiosk Clock: what the strategy generates for a typical bedroom clock.
 # Paste into a dashboard's raw configuration editor, then replace the entity ids with yours:
 #   bedroom_clock_*            -> your clock's Kiosk Satellite entities (Settings > Devices > your clock)
-#   media_player.bedroom_clock_player, light.bedside_lamp, light.bedroom_ceiling, weather.home
+#   media_player.bedroom_clock_player, light.bedside_lamp, light.bedroom_ceiling, fan.bedroom_fan, weather.home
 #   area ids (bedroom, bathroom, ...) and the /bedroom-clock/ paths -> your own
 # Easier: use the strategy and "Take control" instead (see README.md).
 views:
@@ -84,15 +84,16 @@ views:
           columns: 2
           square: false
           cards:
+          - type: area
+            area: bedroom
+            display_type: compact
+            features:
+            - type: area-controls
+              controls:
+              - light
+            features_position: inline
           - type: tile
-            entity: light.bedroom_ceiling
-            vertical: true
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-          - type: tile
-            entity: light.bedside_lamp
+            entity: fan.bedroom_fan
             vertical: true
             tap_action:
               action: toggle

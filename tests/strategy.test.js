@@ -75,12 +75,74 @@ test("picks the Music Assistant player from the app, not Cast", () => {
   assert.equal(findMediaPlayer({}, h.devices.clock, h), "media_player.bedroom_clock_player");
 });
 
-test("room lights come from the clock's area, skip hidden and the screen", () => {
+const homeTiles = (d) => d.views[0].cards[0].cards[1].cards[1].cards[0].cards;
+
+test("whole-room light: several lights and no group falls back to an area control", () => {
   const d = buildDashboard({ path: "clock" }, fakeHass());
+  const [light] = homeTiles(d);
+  assert.equal(light.type, "area");
+  assert.equal(light.area, "bed");
+  assert.deepEqual(light.features[0].controls, ["light"]);
   const json = JSON.stringify(d.views[0]);
-  assert.ok(json.includes("light.bed_ceiling") && json.includes("light.bed_lamp"));
   assert.ok(!json.includes("light.hidden_one"));
   assert.ok(!json.includes(`"entity":"light.${P}_screen"`));
+});
+
+test("whole-room light: a light group in the room wins, the biggest one", () => {
+  const h = fakeHass();
+  h.entities["light.bed_group"] = { entity_id: "light.bed_group", area_id: "bed" };
+  h.states["light.bed_group"] = { state: "off", attributes: { entity_id: ["light.bed_lamp", "light.bed_ceiling"] } };
+  h.entities["light.lamp_group"] = { entity_id: "light.lamp_group", area_id: "bed" };
+  h.states["light.lamp_group"] = { state: "off", attributes: { entity_id: ["light.bed_lamp"] } };
+  const [light] = homeTiles(buildDashboard({}, h));
+  assert.equal(light.entity, "light.bed_group");
+  assert.equal(light.tap_action.action, "toggle");
+});
+
+test("whole-room light: no group, the light named after the room wins", () => {
+  const h = fakeHass();
+  h.entities["light.bedroom_lights"] = { entity_id: "light.bedroom_lights", area_id: "bed" };
+  h.states["light.bedroom_lights"] = { state: "off", attributes: {} };
+  assert.equal(homeTiles(buildDashboard({}, h))[0].entity, "light.bedroom_lights");
+});
+
+test("whole-room light: one bulb that starts with the room name is not the whole room", () => {
+  const h = fakeHass();
+  h.entities["light.bedroom_ceiling_2"] = { entity_id: "light.bedroom_ceiling_2", area_id: "bed" };
+  h.states["light.bedroom_ceiling_2"] = { state: "off", attributes: {} };
+  assert.equal(homeTiles(buildDashboard({}, h))[0].type, "area");
+});
+
+test("whole-room light: the only light in the room is used directly", () => {
+  const h = fakeHass();
+  delete h.entities["light.bed_ceiling"];
+  assert.equal(homeTiles(buildDashboard({}, h))[0].entity, "light.bed_lamp");
+});
+
+test("fan slot is blank when the room has no fan, so the grid keeps its place", () => {
+  const tiles = homeTiles(buildDashboard({}, fakeHass()));
+  assert.equal(tiles.length, 4);
+  assert.equal(tiles[1].type, "markdown");
+  assert.equal(tiles[2].entity, "media_player.bedroom_clock_player");
+});
+
+test("fan slot shows the room's fan", () => {
+  const h = fakeHass();
+  h.entities["fan.bed_fan"] = { entity_id: "fan.bed_fan", area_id: "bed" };
+  h.states["fan.bed_fan"] = { state: "off", attributes: {} };
+  const fan = homeTiles(buildDashboard({}, h))[1];
+  assert.equal(fan.entity, "fan.bed_fan");
+  assert.equal(fan.tap_action.action, "toggle");
+});
+
+test("light and fan options override detection; fan: false leaves it blank", () => {
+  const h = fakeHass();
+  h.entities["fan.bed_fan"] = { entity_id: "fan.bed_fan", area_id: "bed" };
+  h.states["fan.bed_fan"] = { state: "off", attributes: {} };
+  const t = homeTiles(buildDashboard({ light: "light.kitchen", fan: false }, h));
+  assert.equal(t[0].entity, "light.kitchen");
+  assert.equal(t[1].type, "markdown");
+  assert.equal(homeTiles(buildDashboard({ lights: ["light.bed_lamp"] }, h))[0].entity, "light.bed_lamp");
 });
 
 test("rooms sort top floor first, loose areas last, irrelevant areas dropped", () => {

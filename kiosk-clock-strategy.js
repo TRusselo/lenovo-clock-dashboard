@@ -9,7 +9,7 @@
  *     type: custom:kiosk-clock
  *     device: Bedroom Clock        # optional when you have one Kiosk Satellite device
  *
- * Optional keys: area, lights (list), media_player, weather, rooms (true/false),
+ * Optional keys: area, light (entity id), fan (entity id, or false), media_player, weather, rooms (true/false),
  * floor_order (list of floor ids, top first), exclude_areas (list of area ids), path (dashboard url path).
  */
 
@@ -82,14 +82,40 @@ function visibleEntries(hass) {
 
 const deviceClass = (hass, id) => ((hass.states[id] || {}).attributes || {}).device_class;
 
-export function roomLights(config, device, area, clock, hass) {
-  if (Array.isArray(config.lights)) return config.lights;
-  if (!area) return [];
-  return visibleEntries(hass)
-    .filter((e) => e.entity_id.startsWith("light.") && e.entity_id !== clock.screen && entityArea(e, hass) === area)
+const slug = (s) => lower(s).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+
+/**
+ * The one control for the whole room in a domain ("light" or "fan"):
+ * a group in the room (the biggest), else the only one, else the one named after the room
+ * ("bedroom", "bedroom_lights"),
+ * else { area } so the card can switch every one in the room together. null when the room has none.
+ */
+export function roomControl(domain, config, area, clock, hass) {
+  const set = config[domain];
+  if (set === false) return null;
+  if (typeof set === "string") return { entity: set };
+  if (domain === "light" && Array.isArray(config.lights) && config.lights.length) return { entity: config.lights[0] };
+  if (!area) return null;
+  const ids = visibleEntries(hass)
+    .filter((e) => e.entity_id.startsWith(domain + ".") && e.entity_id !== clock.screen && entityArea(e, hass) === area)
     .map((e) => e.entity_id)
-    .sort()
-    .slice(0, 2);
+    .sort();
+  if (!ids.length) return null;
+  const members = (id) => {
+    const m = ((hass.states[id] || {}).attributes || {}).entity_id;
+    return Array.isArray(m) ? m.length : 0;
+  };
+  const groups = ids.filter((id) => members(id) > 0).sort((a, b) => members(b) - members(a) || a.localeCompare(b));
+  if (groups.length) return { entity: groups[0] };
+  if (ids.length === 1) return { entity: ids[0] };
+  const name = slug(((hass.areas || {})[area] || {}).name || area);
+  const named = ids.filter((id) => {
+    const obj = id.split(".")[1];
+    // "bedroom", "bedroom_light(s)", "bedroom_fan(s)", not one bulb like "bedroom_ceiling".
+    return [name, `${name}_${domain}`, `${name}_${domain}s`].includes(obj);
+  });
+  if (named.length) return { entity: named.sort((a, b) => a.length - b.length)[0] };
+  return { area };
 }
 
 /** Floors top to bottom, each with the areas worth showing. */
@@ -181,8 +207,26 @@ function infoMarkdown(c, weather) {
   return { type: "markdown", text_only: true, content: lines.join("\n\n") };
 }
 
-function homeView(base, c, lights, player, weather, enabled) {
-  const tiles = lights.map((l) => ({ type: "tile", entity: l, vertical: true, tap_action: { action: "toggle" }, hold_action: { action: "more-info" } }));
+// Keeps a grid cell empty so the buttons after it stay in place.
+const BLANK = { type: "markdown", text_only: true, content: "&nbsp;" };
+
+function controlCard(ctl, domain) {
+  if (!ctl) return BLANK;
+  if (ctl.entity) {
+    return { type: "tile", entity: ctl.entity, vertical: true, tap_action: { action: "toggle" }, hold_action: { action: "more-info" } };
+  }
+  // No single entity covers the room: the area card's control switches all of them together.
+  return {
+    type: "area",
+    area: ctl.area,
+    display_type: "compact",
+    features: [{ type: "area-controls", controls: [domain] }],
+    features_position: "inline",
+  };
+}
+
+function homeView(base, c, light, fan, player, weather, enabled) {
+  const tiles = [controlCard(light, "light"), controlCard(fan, "fan")];
   if (player) {
     tiles.push({
       type: "tile",
@@ -319,7 +363,8 @@ export function buildDashboard(config, hass) {
   const device = found.device;
   const c = clockEntities(device, hass);
   const area = config.area || device.area_id || null;
-  const lights = roomLights(config, device, area, c, hass);
+  const light = roomControl("light", config, area, c, hass);
+  const fan = roomControl("fan", config, area, c, hass);
   const player = findMediaPlayer(config, device, hass);
   const weather =
     config.weather || Object.keys(hass.states || {}).filter((id) => id.startsWith("weather.")).sort()[0];
@@ -329,7 +374,7 @@ export function buildDashboard(config, hass) {
   if (player) enabled.push("media");
   if (c.screen || c.adaptive || c.keepOn) enabled.push("screen");
   const base = "/" + (config.path || (typeof location !== "undefined" ? location.pathname.split("/")[1] : "kiosk-clock"));
-  const views = [homeView(base, c, lights, player, weather, enabled)];
+  const views = [homeView(base, c, light, fan, player, weather, enabled)];
   if (enabled.includes("rooms")) views.push(roomsView(base, groups, enabled));
   if (enabled.includes("media")) views.push(mediaView(base, c, player, enabled));
   if (enabled.includes("screen")) views.push(screenView(base, c, enabled));
