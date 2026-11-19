@@ -6,6 +6,8 @@ strategy, `custom:kiosk-clock`: you point it at the clock and it builds the view
 the clock's device, its area and your home's floors. It uses built-in cards only, so there is
 nothing else to install.
 
+<img width="500" alt="A Lenovo Smart Clock showing this dashboard: the time, the date, the weather, and buttons for the room's light, its music player and the screensaver" src="https://raw.githubusercontent.com/TRusselo/lenovo-clock-dashboard/main/assets/images/clock-with-dashboard.jpg" />
+
 [![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=TRusselo&repository=lenovo-clock-dashboard&category=plugin)
 
 ## What you get
@@ -21,6 +23,12 @@ Four views, each with a navigation row sized for a roughly 533x320 CSS-pixel scr
 - **Screen**: brightness, Auto brightness, Keep screen on, Screensaver now and Reload page.
 
 A view is left out when there is nothing to show in it, for example Media when no player is found.
+
+| Home | Rooms |
+|---|---|
+| <img width="400" alt="The Home view: the time, the date, the weather, the room's light and fan, the clock's player and the screensaver" src="https://raw.githubusercontent.com/TRusselo/lenovo-clock-dashboard/main/assets/images/dashboard-home.jpg" /> | <img width="400" alt="The Rooms view: one card per room, grouped by floor, each with its temperature and a light button" src="https://raw.githubusercontent.com/TRusselo/lenovo-clock-dashboard/main/assets/images/dashboard-rooms.jpg" /> |
+| **Media** | **Screen** |
+| <img width="400" alt="The Media view: the clock's player with the song, artist and album art, and a volume slider" src="https://raw.githubusercontent.com/TRusselo/lenovo-clock-dashboard/main/assets/images/dashboard-media.jpg" /> | <img width="400" alt="The Screen view: a brightness slider, Auto brightness, Keep screen on, Screensaver now and Reload page" src="https://raw.githubusercontent.com/TRusselo/lenovo-clock-dashboard/main/assets/images/dashboard-screen.jpg" /> |
 
 ## Install
 
