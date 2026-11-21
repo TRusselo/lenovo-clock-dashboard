@@ -57,7 +57,7 @@ views:
         cards:
         - type: markdown
           text_only: true
-          content: "# {{ now().strftime('%-I:%M %p') }}"
+          content: "{% set t = now() %}<center><font size=\"7\">{{ t.strftime('%-I:%M') }}</font><font size=\"3\"> {{ t.strftime('%p') }}</font></center>"
         - type: markdown
           text_only: true
           content: '## {{ now().strftime(''%a, %b %-d'') }}

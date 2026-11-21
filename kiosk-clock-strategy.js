@@ -185,11 +185,12 @@ function clockMarkdown() {
   // The clock's webview ships an outdated timezone database, so the built-in clock card
   // (which reads the device's clock) shows the wrong local time. A markdown card renders
   // its template server-side, so now() is Home Assistant's local time, not the device's,
-  // and the server re-renders it at the start of every minute.
+  // and the server re-renders it at the start of every minute. <center> and <font> are the
+  // only tags the markdown card keeps, so they give a large, centred clock without card-mod.
   return {
     type: "markdown",
     text_only: true,
-    content: "# {{ now().strftime('%-I:%M %p') }}",
+    content: `{% set t = now() %}<center><font size="7">{{ t.strftime('%-I:%M') }}</font><font size="3"> {{ t.strftime('%p') }}</font></center>`,
   };
 }
 

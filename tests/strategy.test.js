@@ -199,7 +199,9 @@ test("home clock is Home Assistant's time, not the device's", () => {
   const d = buildDashboard({ path: "c" }, fakeHass());
   const clock = d.views[0].cards[0].cards[1].cards[0].cards[0];
   assert.equal(clock.type, "markdown");
-  assert.ok(clock.content.includes("now().strftime"));
+  assert.ok(clock.content.includes("now()"));
+  assert.ok(clock.content.includes("<center>"));
+  assert.ok(clock.content.includes('font size="7"'));
   assert.ok(!clock.content.includes("%S"));
   assert.ok(!JSON.stringify(d.views[0]).includes('"type":"clock"'));
 });
