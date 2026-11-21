@@ -180,6 +180,19 @@ function nav(base, current, enabled) {
 
 const press = (entity) => ({ action: "perform-action", perform_action: "button.press", target: { entity_id: entity } });
 
+/** The big clock, taken from Home Assistant rather than the device's own clock. */
+function clockMarkdown() {
+  // The clock's webview ships an outdated timezone database, so the built-in clock card
+  // (which reads the device's clock) shows the wrong local time. A markdown card renders
+  // its template server-side, so now() is Home Assistant's local time, not the device's,
+  // and the server re-renders it at the start of every minute.
+  return {
+    type: "markdown",
+    text_only: true,
+    content: "# {{ now().strftime('%-I:%M %p') }}",
+  };
+}
+
 function infoMarkdown(c, weather) {
   const ts = (id) => `as_datetime(states('${id}'))`;
   // Markdown headings are the only way to size text in a built-in card without card-mod.
@@ -277,7 +290,7 @@ function homeView(base, c, light, fan, player, weather, enabled) {
           {
             type: "horizontal-stack",
             cards: [
-              { type: "vertical-stack", cards: [{ type: "clock", clock_size: "large" }, infoMarkdown(c, weather)] },
+              { type: "vertical-stack", cards: [clockMarkdown(), infoMarkdown(c, weather)] },
               { type: "vertical-stack", cards: right },
             ],
           },

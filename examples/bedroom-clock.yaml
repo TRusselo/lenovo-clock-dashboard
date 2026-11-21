@@ -55,8 +55,9 @@ views:
       cards:
       - type: vertical-stack
         cards:
-        - type: clock
-          clock_size: large
+        - type: markdown
+          text_only: true
+          content: "# {{ now().strftime('%-I:%M %p') }}"
         - type: markdown
           text_only: true
           content: '## {{ now().strftime(''%a, %b %-d'') }}
