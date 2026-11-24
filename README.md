@@ -1,4 +1,6 @@
-# Lenovo Clock Dashboard
+# Lenovo Clock Dashboard 
+
+[<img src="https://github.com/user-attachments/assets/2d889b1b-d810-42e5-834c-73a92b9e0966" width="25%">](https://buymeacoffee.com/hfaumogyb)   
 
 A Home Assistant dashboard for the 4-inch screen of a Lenovo Smart Clock (gen 1) running the
 [Kiosk Satellite](https://github.com/jxlarrea/kiosk-satellite) app. It is a dashboard
